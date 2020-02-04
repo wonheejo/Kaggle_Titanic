@@ -97,6 +97,7 @@ def logistic_regression(features, target):
     return logistic
 
 # Logistic Regression with polynomial n=2
+"""
 poly = preprocessing.PolynomialFeatures(degree=2)
 features_ = poly.fit_transform(features)
 logistic2 = linear_model.LogisticRegression(C=10, max_iter=1000)
@@ -106,6 +107,7 @@ print('Logistic Regression with Poly(2):', acc12)
 
 scores1 = model_selection.cross_val_score(logistic2, features_, target, scoring='accuracy', cv=10)
 print(scores1.mean())
+"""
 
 # Decision Tree
 def decision_tree(features, target):
