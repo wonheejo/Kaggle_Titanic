@@ -7,8 +7,6 @@ from sklearn.ensemble import RandomForestClassifier, VotingClassifier, BaggingCl
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix, f1_score, accuracy_score
-import xgboost
-
 
 pd.options.display.width = 0
 pd.set_option('display.max_rows', 800)
@@ -132,81 +130,82 @@ for dataset in train_test_set:
 	dataset.loc[(dataset['Family'] > 5) & (dataset['Family'] <= 6), 'Family'] = 3
 	dataset.loc[dataset['Family'] > 6, 'Family'] = 4
 
-train = train.drop(['Name', 'SibSp', 'Parch', 'Cabin', 'Ticket'], axis=1)
-test = test.drop(['Name', 'SibSp', 'Parch', 'Cabin', 'Ticket'], axis=1)
+	dataset['Single']= dataset['Family'].map(lambda s: 1 if s==0 else 0)
+	dataset['SmFm'] = dataset['Family'].map(lambda s: 1 if s==1 else 0)
+	dataset['MdFm'] = dataset['Family'].map(lambda s: 1 if s==2 else 0)
+	dataset['LgFm'] = dataset['Family'].map(lambda s: 1 if s==3 else 0)
+	dataset['VlgFm'] = dataset['Family'].map(lambda s: 1 if s==4 else 0)
+
+train = train.drop(['Name', 'SibSp', 'Parch', 'Cabin', 'Ticket', 'Family'], axis=1)
+test = test.drop(['Name', 'SibSp', 'Parch', 'Cabin', 'Ticket', 'Family'], axis=1)
 
 # print(dataset['Title'].value_counts())
 
-familysize = train[['Family', 'Survived']].groupby(['Family'], as_index=False).mean().sort_values(by='Survived', ascending=False)
-
-x_train = train.drop(['PassengerId', 'Survived'], axis=1).values
+x_train = train.drop(['PassengerId', 'Survived'], axis=1)
 y_train = train['Survived']
-x_test = test.drop(['PassengerId'], axis=1).values
+x_test = test.drop(['PassengerId'], axis=1)
 # print(x_train.shape, y_train.shape, x_test.shape)
 
 # SGDClassifier
 sgd_clf = SGDClassifier()
 sgd_clf.fit(x_train, y_train)
 sgd_clf_cvs = cross_val_score(sgd_clf, x_train, y_train, cv=10, scoring='accuracy').mean()
-sgd_clf_pre = cross_val_predict(sgd_clf, x_train, y_train, cv=10)
-sgd_f1 = f1_score(y_train, sgd_clf_pre)
+#sgd_clf_pre = cross_val_predict(sgd_clf, x_train, y_train, cv=10)
+#sgd_f1 = f1_score(y_train, sgd_clf_pre)
 
 
 # Logistic Regression
 lg_clf = LogisticRegression()
 lg_clf.fit(x_train, y_train)
 lg_clf_cvs = cross_val_score(lg_clf, x_train, y_train, cv=10, scoring='accuracy').mean()
-lg_clf_pre = cross_val_predict(lg_clf, x_train, y_train, cv=10)
-lg_f1 = f1_score(y_train, lg_clf_pre)
+#lg_clf_pre = cross_val_predict(lg_clf, x_train, y_train, cv=10)
+#lg_f1 = f1_score(y_train, lg_clf_pre)
 
 
 # SVC
-svm_clf = SVC()
+svm_clf = SVC(probability=True)
 svm_clf.fit(x_train, y_train)
 svm_clf_cvs = cross_val_score(svm_clf, x_train, y_train, cv=10, scoring='accuracy').mean()
-svm_clf_pre = cross_val_predict(svm_clf, x_train, y_train, cv=10)
-svm_f1 = f1_score(y_train, svm_clf_pre)
+#svm_clf_pre = cross_val_predict(svm_clf, x_train, y_train, cv=10)
+#svm_f1 = f1_score(y_train, svm_clf_pre)
 
 
 # Decision Tree Classifier
 dt_clf = DecisionTreeClassifier()
 dt_clf.fit(x_train, y_train)
 dt_clf_cvs = cross_val_score(dt_clf, x_train, y_train, cv=10, scoring='accuracy').mean()
-dt_clf_pre = cross_val_predict(dt_clf, x_train, y_train, cv=10)
-dt_f1 = f1_score(y_train, dt_clf_pre)
+#dt_clf_pre = cross_val_predict(dt_clf, x_train, y_train, cv=10)
+#dt_f1 = f1_score(y_train, dt_clf_pre)
 
 
 # KNNeighbors Classifier
 knn_clf = KNeighborsClassifier(n_neighbors = 3)
 knn_clf.fit(x_train, y_train)
 knn_clf_cvs = cross_val_score(knn_clf, x_train, y_train, cv=10, scoring='accuracy').mean()
-knn_clf_pre = cross_val_predict(knn_clf, x_train, y_train, cv=10)
-knn_f1 = f1_score(y_train, knn_clf_pre)
+#knn_clf_pre = cross_val_predict(knn_clf, x_train, y_train, cv=10)
+#knn_f1 = f1_score(y_train, knn_clf_pre)
 
 
 # RandomForest Classifier
-rf_clf = RandomForestClassifier(n_estimators=500, max_leaf_nodes=16, n_jobs=-1)
+rf_clf = RandomForestClassifier(n_estimators=500, n_jobs=-1)
 rf_clf.fit(x_train, y_train)
 rf_clf_cvs = cross_val_score(rf_clf, x_train, y_train, cv=10, scoring='accuracy').mean()
-rf_clf_pre = cross_val_predict(rf_clf, x_train, y_train, cv=10)
-rf_f1 = f1_score(y_train, rf_clf_pre)
+#rf_clf_pre = cross_val_predict(rf_clf, x_train, y_train, cv=10)
+#rf_f1 = f1_score(y_train, rf_clf_pre)
 
+"""
 bag_clf = BaggingClassifier(
 	DecisionTreeClassifier(), n_estimators=500, max_samples=100, bootstrap=True, n_jobs=-1, oob_score=True)
 bag_clf.fit(x_train, y_train)
 bag_clf_cvs = cross_val_score(bag_clf, x_train, y_train, cv=10, scoring='accuracy').mean()
 bag_clf_pre = cross_val_predict(bag_clf, x_train, y_train, cv=10)
 bag_f1 = f1_score(y_train, bag_clf_pre)
+"""
 
 voting_clf = VotingClassifier(
 	estimators=[('lr', lg_clf), ('rf', rf_clf), ('svc', svm_clf)],
-	voting='hard')
+	voting='soft')
 voting_clf.fit(x_train, y_train)
-voting_clf_cvs = cross_val_score(voting_clf, x_train, y_train, cv=10, scoring='accuracy').mean()
-voting_clf_pre = cross_val_predict(voting_clf, x_train, y_train, cv=10)
-voting_f1 = f1_score(y_train, voting_clf_pre)
-
-X_train, X_val, Y_train, Y_val = train_test_split(x_train, y_train)
 """
 xgb_reg = xgboost.XGBRegressor()
 xgb_reg.fit(x_train, y_train, eval_set=[(X_val, Y_val)], early_stopping_rounds=2)
@@ -240,7 +239,7 @@ print('\n')
 #print(sgd_dfscore)
 """
 
-predict = rf_clf.predict(x_test)
+predict = voting_clf.predict(x_test)
 
 
 def final(predict, test):
@@ -248,7 +247,7 @@ def final(predict, test):
         'PassengerId' : test['PassengerId'],
         'Survived' : predict
     })
-    submission.to_csv('submission.csv', index=False)
+    submission.to_csv('submissionVotingClassifier.csv', index=False)
 
 final(predict, test)
 
